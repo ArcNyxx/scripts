@@ -7,7 +7,7 @@ import json, requests
 
 
 def perc(num: float):
-    string = str(round(num, 4))[2:] + '%'
+    string = str(round(num, 4))[2:6].ljust(4, '0') + '%'
     return string[:2] + '.' + string[2:]
 
 
@@ -52,7 +52,7 @@ def main(name: str):
     longest_num = len(str(langs[0][1])) # longest num to string for padding
     langs = dict(langs)
 
-    print(f"Total: {total}")
+    print(f"{'Total:'.ljust(longest + 1)} {total}")
     for lang in langs:
         print(f"{(lang + ':').ljust(longest + 1)} "
                 f"{str(langs[lang]).ljust(longest_num)} "
