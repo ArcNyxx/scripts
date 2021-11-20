@@ -11,7 +11,6 @@ CACHE="$HOME/.cache/stallman/blacklist.txt"
 # if the cache doesn't exist, create it and get the blacklist
 [ ! -f $CACHE ] && \
         mkdir -p $(echo $CACHE | rev | cut -d/ -f2- | rev) && \
-        touch $(echo $CACHE | rev | cut -d/ -f1 | rev) && \
 	curl -s $BLACKLISTS > $CACHE
 
 for PACK in $(pacman -Qq); do
