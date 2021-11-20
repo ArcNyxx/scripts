@@ -8,23 +8,12 @@ BLACKLISTS="https://git.parabola.nu/blacklist.git/plain/blacklist.txt
         https://git.parabola.nu/blacklist.git/plain/aur-blacklist.txt"
 CACHE="$HOME/.cache/stallman/blacklist.txt"
 
-if [ ! -f $CACHE ]; then
-        mkdir -p $(echo $CACHE | rev | cut -d/ -f2- | rev)
-        touch $(echo $CACHE | rev | cut -d/ -f1 | rev)
-fi
+# if the cache doesn't exist, create it and get the blacklist
+[ ! -f $CACHE ] && \
+        mkdir -p $(echo $CACHE | rev | cut -d/ -f2- | rev) && \
+        touch $(echo $CACHE | rev | cut -d/ -f1 | rev) && \
+	curl -s $BLACKLISTS > $CACHE
 
-PACKS=$(pacman -Qq)
-STALL=
-
-curl $BLACKLISTS > $CACHE
-BLPACKS=$($(cat $CACHE) | tr '\n' '" "')
-
-echo $BLPACKS
-exit
-
-for FBLPACK in $BLPACKS; do
-        SBLPACK=$(echo $FBLPACK | cut -d: -f1)
-        if echo $PACKS | grep $SBLPACH; then
-                echo $FBLPACK
-        fi
+for PACK in $(pacman -Qq); do
+	grep "^$PACK:" $CACHE
 done
