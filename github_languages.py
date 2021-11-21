@@ -14,15 +14,19 @@ def perc(num: float):
 def main(name: str):
     repos, langs, page, total, longest = list(), dict(), 1, 0, 7
 
-    with open("TOKEN.txt", "r") as token_file:
-        token = token_file.read()
-        if token[-1] == '\n':
-            token = token[:-1]
+    try:
+        with open("TOKEN.txt", "r") as token_file:
+            token = token_file.read()
+            if token[-1] == '\n':
+                token = token[:-1]
+        headers={"Authorization": "token " + token}
+    except:
+        headers={}
 
     while True:
         response = requests.get("https://api.github.com/users/"
                 f"{name}/repos?per_page=100&page={page}",
-                headers={"Authorization": "token " + token})
+                headers=headers)
         response.raise_for_status()
         res_repos = response.json()
         
@@ -36,7 +40,7 @@ def main(name: str):
     for repo in repos:
         res_langs = requests.get("https://api.github.com/repos/"
                 f"{name}/{repo}/languages",
-                headers={"Authorization": "token " + token}).json()
+                headers=headers).json()
         
         for res_lang in res_langs:
             if res_lang in langs:
