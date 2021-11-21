@@ -11,7 +11,7 @@ lowerfex() {
 # past is the filename of the last non-same file
 SAME=1
 PAST="tmp" # same is not permitted on the first file
-PASTVAL="tmpVAL" # unnecessary, for readability and simplicity
+PASTVAL="tmpVAL"
 
 for FILE in $(ls); do
 	vlc $FILE 2> /dev/null
