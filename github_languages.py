@@ -20,7 +20,7 @@ def main(name: str):
             if token[-1] == '\n':
                 token = token[:-1]
         headers={"Authorization": "token " + token}
-    except:
+    except: # unable to find the file
         headers={}
 
     while True:
