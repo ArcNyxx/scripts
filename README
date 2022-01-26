@@ -1,3 +1,4 @@
 scripts - simple scripts
 ========================
-Some scripts written in multiple languages for various tasks.
+Various scripts written in POSIX compliant shell (using util-linux commands)
+useful for specific tasks or the hastening of tedious work.

@@ -8,7 +8,7 @@ AUTH="Authorization: token $TOKEN"
 
 while true; do
 	URL="https://api.github.com/users/${NAME}/repos?per_page=100&page=${PAGE}"
-	REPO=$(curl -H "$AUTH" "$URL" 2> /dev/null |
+	REPO=$(curl "$URL" -H "$AUTH" 2> /dev/null |
 		grep '^    "name":' | cut '-d"' -f4)
 
 	echo "$REPO"
