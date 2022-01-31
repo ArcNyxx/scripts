@@ -3,12 +3,15 @@
 # Copyright (C) 2022 FearlessDoggo21
 # see LICENCE file for licensing information
 
-PAGE='1'
-AUTH="Authorization: token $TOKEN"
+[ -z "$NAME" ] && echo "ghrepo: set \$NAME to github username" && exit 1
 
+AUTH="-H \"Authorization: token $TOKEN\""
+[ -z "$TOKEN" ] && AUTH=""
+
+PAGE="1"
 while true; do
 	URL="https://api.github.com/users/${NAME}/repos?per_page=100&page=${PAGE}"
-	REPO=$(curl "$URL" -H "$AUTH" 2> /dev/null |
+	REPO=$(curl "$URL" $AUTH 2> /dev/null |
 		grep '^    "name":' | cut '-d"' -f4)
 
 	echo "$REPO"
