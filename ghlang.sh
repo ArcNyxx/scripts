@@ -1,15 +1,18 @@
 #!/bin/sh
-# ghlang - get github repository languages
+# ghlang - github repository languages
 # Copyright (C) 2022 ArcNyxx
 # see LICENCE file for licensing information
 
-echo -n 'github: enter username: ' >&2
-read -r NAME
+if [ -z "$1" ]; then
+	echo 'usage: ghlang [name]'
+	exit 1
+fi
 
 TEMP=$(mktemp -dt)
 trap "rm -rf $TEMP" EXIT
 
-[ -n "$GHTOKEN" ] && AUTH="-H \"Authorization: token $GHTOKEN\""
+AUTH="-H \"Authorization: token $GHTOKEN\""=
+[ -z "$GHTOKEN" ] && AUTH=
 
 PAGE='1'
 while true; do

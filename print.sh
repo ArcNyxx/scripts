@@ -1,6 +1,6 @@
 #!/bin/sh
-# print - functions for building troff docs, printing from remote cups servers
-# Copyright (C) 2022 FearlessDoggo21
+# print - print troff documents
+# Copyright (C) 2022 ArcNyxx
 # see LICENCE file for licensing information
 
 mktroff() {
