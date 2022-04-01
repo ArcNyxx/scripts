@@ -22,7 +22,7 @@ case "$1" in
 	add)
 		echo 'pswd: add: enter site, user, and pass'
 		read -r SITE; read -r USER; read -r PASS
-		echo -e "$READ\n $SITE $USER $PASS" | sort -u | column -t |
+		echo -e "$READ\n$SITE $USER $PASS" | sort -u | column -t |
 			age -e -p -o "$PSWD"
 		;;
 	rm)
