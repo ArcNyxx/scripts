@@ -1,4 +1,3 @@
 scripts - simple scripts
 ========================
-Various scripts written in POSIX compliant shell (using util-linux commands)
-useful for specific tasks or the hastening of tedious work.
+scripts is a compilation of scripts written in standards-compliant shell.
