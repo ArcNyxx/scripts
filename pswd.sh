@@ -1,97 +1,61 @@
 #!/bin/sh
-# pswd - text file password manager
+# pswd - password manager
 # Copyright (C) 2022 ArcNyxx
 # see LICENCE file for licensing information
 
-which age > /dev/null
-if [ "$?" -ne 0 ]; then
-	echo "pswd: unable to find age"
-	exit 1
-fi
+error() {
+	echo "$1" >&2; exit "${2:-1}"
+}
+
+# make "$PSWD" file if not exists
+[ -z "$PSWD" ]   && error 'pswd: $PSWD variable unset'
+[ ! -e "$PSWD" ] && mkdir -p "${PSWD%/*}" && \
+	touch "$PSWD" 2>/dev/null && age -p "$PSWD"
+[ $? -ne 0 ]     && error 'pswd: unable to make $PSWD file'
+
+# read "$PSWD" file, output and exit if no arguments
+READ=$(age -d "$PSWD" 2>/dev/null)
+[ $? -ne 0 ] && error 'pswd: unable to read $PSWD file'
+[ -z "$1" ]  && error "$READ" 0 
 
 case "$1" in
-	new)
-		mkdir -p "$(echo "${PSWD}pswd.age" | rev | cut -d/ -f2- | rev)"
-		echo "pswd file - $(date +%0d-%0m-%y)" | \
-			age -e -p -o "${PSWD}pswd.age"
-		;;
-	del)
-		if [ ! -e "${PSWD}pswd.age" ]; then
-			echo "pswd: file does not exist: ${PSWD}pswd.age"
-			exit 1
-		fi
-
-		echo "pswd: confirm del file [y/N]"
-		read -r CONFIRM
-		
-		if [ "$CONFIRM" != y ]; then
-			echo "pswd: confirm fail"
-			exit 0
-		fi
-
-		rm -f "${PSWD}pswd.age"
-		;;
-
 	add)
-		if [ -z "$2" ]; then
-			echo "pswd: add [line]"
-			exit 1
-		fi
-
-		if [ ! -e "${PSWD}pswd.age" ]; then
-			echo "pswd: file does not exist: ${PSWD}pswd.age"
-			exit 1
-		fi
-
-		DATA="$(age -d "${PSWD}pswd.age")"
-		if [ -z "$DATA" ]; then
-			echo "pswd: unable to read passwords"
-			exit 1
-		fi
-
-		echo -e "$DATA\n$2" | age -e -p -o "${PSWD}pswd.age"
+		echo 'pswd: add: enter site, user, and pass'
+		read -r SITE; read -r USER; read -r PASS
+		echo -e "$READ\n $SITE $USER $PASS" | sort -u | column -t |
+			age -e -p -o "$PSWD"
 		;;
-
 	rm)
-		if [ -z "$2" ]; then
-			echo "pswd: rm [line]"
-			exit 1
+		echo 'pswd: rm: enter site'
+		read -r SITE
+
+		# verify line to remove
+		GREP=$(echo "$READ" | grep "^$SITE" | column -t)
+		LINC=$(echo "$GREP" | wc -l)
+
+		if [ $LINC -eq 0 ]; then
+			error "pswd: $SITE not found in \$PSWD"
+		elif [ "$LINC" -ne 1 ]; then
+			echo 'pswd: rm: select line to remove'
+			ITER=1
+			echo "$GREP" | while read -r LINE; do
+				OUT="$ITER" # pad line number
+				while [ "${#OUT}" -le "$LC" ]; do
+					OUT="0$OUT"
+				done
+
+				echo "($OUT) $LINE"
+				ITER=$((ITER + 1))
+			done
+
+			read -r "$LINE"
+			RM=$(echo "$GREP" | sed "${LINE}q;d")
+			[ -z "$RM" ] && error "pswd: rm: $LINE not found"
+			
+			echo "pswd: rm: remove $RM? [y/N]"
+			read -r "$YES"
+			[ "$YES" = 'y' ] && echo "$READ" | grep -v "$RM" |
+				sort -u | column -t | age -e -p -o "$PSWD"
 		fi
-
-		if [ ! -e "${PSWD}pswd.age" ]; then
-			echo "pswd: file does not exist: ${PSWD}pswd.age"
-			exit 1
-		fi
-
-		DATA="$(age -d "${PSWD}pswd.age")"
-		if [ -z "$DATA" ]; then
-			echo "pswd: unable to read passwords"
-			exit 1
-		fi
-
-		echo "$DATA" | grep "$2"
-		echo "pswd: confirm del line [y/N]"
-		read -r CONFIRM
-		
-		if [ "$CONFIRM" != y ]; then
-			echo "pswd: confirm fail"
-			exit 0
-		fi
-
-		echo "$DATA" | grep -v "$2" | age -e -p -o "${PSWD}pswd.age"
-		;;
-
-	read)
-		if [ ! -e "${PSWD}pswd.age" ]; then
-			echo "pswd: file does not exist: ${PSWD}pswd.age"
-			exit 1
-		fi
-
-		age -d "${PSWD}pswd.age"
-		;;
-
-	*)
-		echo "pswd: invalid command: $1"
-		exit 1
 		;;
 esac
