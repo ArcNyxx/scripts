@@ -4,7 +4,7 @@
 # see LICENCE file for licensing information
 
 if [ -z "$1" ]; then
-	echo 'usage: ghlang [name]'
+	echo 'usage: ghlang [name]' >&2
 	exit 1
 fi
 
@@ -16,7 +16,7 @@ AUTH="-H \"Authorization: token $GHTOKEN\""=
 
 PAGE='1'
 while true; do
-	URL="https://api.github.com/users/${NAME}/repos?per_page=100&page=${PAGE}"
+	URL="https://api.github.com/users/$1/repos?per_page=100&page=${PAGE}"
 	REPOS="$(curl "$URL" $AUTH 2>/dev/null | grep '^    "name":' | cut '-d"' -f4) $REPOS"
 	[ "$(echo "$REPOS" | wc -w)" != "$((PAGE * 100))" ] && break
 	PAGE=$((PAGE + 1))
