@@ -3,10 +3,9 @@
 # Copyright (C) 2022 ArcNyxx
 # see LICENCE file for licensing information
 
-if [ $? -eq 0 ]; then
-	echo 'usage: print [cmd] [opt...]' >&2
-	exit 1
-fi
+. /usr/local/etc/error.sh
+
+[ $# -eq 0 ] && error 'usage: print [cmd] [opt...]'
 
 case "$1" in
 	stat)
@@ -22,34 +21,20 @@ case "$1" in
 		[ -z "$REQ" ] && REQ='-a'
 
 		ssh -q "$REMOTE" "cancel $REQ" 2>/dev/null
-		if [ $? -eq 0 ]; then
-			echo 'print: requests cancelled' >&2
-		else
-			echo 'print: unable to cancel requests' >&2
-			exit $?
-		fi
+		[ $? -ne 0 ] && error 'print: unable to cancel requests' $?
+		echo 'print: requests cancelled' >&2
 		;;
-
 	*.pdf)
 		ssh -q "$REMOTE" "mkdir -p $PRDEST" 2>/dev/null
-		if [ $? -ne 0 ]; then
-			echo "print: unable to mkdir $PRDEST" >&2
-			exit $?
-		fi
+		[ $? -ne 0 ] && error "print: unable to mkdir $PRDEST" $?
 
 		scp "$FILE" "$REMOTE:$PRDEST" >/dev/null
-		if [ $? -eq 0 ]; then
-			echo "print: document transferred to $PRPRDEST/$1" >&2
-		else
-			echo 'print: unable to transfer document' >&2
-			exit $?
-		fi
+		[ $? -ne 0 ] && error 'print: unable to transfer document' $?
+		echo "print: document transferred to $PRDEST/$1" >&2
 
-		REQ="$(ssh -q "$REMOTE" "lp -o media=Letter $PRDEST/$(basename "$FILE")" 2>/dev/null)"
-		if [ $? -eq 0 ]; then
-			echo "print: printing with request id $(echo "$REQ" | cut '-d ' -f4)" >&2
-		else
-			echo 'print: unable to print document' >&2
-		fi
+		REQ="$(ssh -q "$REMOTE" "lp -o media=Letter $PRDEST/$(basename
+			"$FILE")" 2>/dev/null | cut '-d ' -f4)"
+		[ $? -ne 0 ] && error 'print: unable to print document' $?
+		echo "print: printing with request id $REQ" >&2
 		;;
 esac

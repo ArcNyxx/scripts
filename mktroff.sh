@@ -3,13 +3,11 @@
 # Copyright (C) 2022 ArcNyxx
 # see LICENCE file for licensing information
 
-if [ $? -eq 0 ]; then
-	echo 'usage: mktroff [flag...] [file...]' >&2
-	exit 1
-fi
+. /usr/local/etc/error.sh
 
-FLAGS=
-INPUT=
+[ $# -eq 0 ] && error 'usage: mktroff [flag...] [file...]'
+
+FLAGS=''; INPUT=''
 for PARAM in $@; do
 	if [ -z "${PARAM%-*}" ]; then
 		FLAGS="$FLAGS $PARAM"
@@ -19,10 +17,7 @@ for PARAM in $@; do
 done
 
 LPATH='/usr/local/ucb'
-"$LPATH/tbl" $INPUT | "$LPATH/eqn" | "$LPATH/troff" $FLAGS | "$LPATH/dpost" | ps2pdf - > mkout.pdf
-if [ $? -eq 0 ]; then
-	echo 'mktroff: output written to mkout.pdf' >&2
-else
-	echo 'mktroff: unable to write output' >&2
-	exit $?
-fi
+"$LPATH/tbl" $INPUT | "$LPATH/eqn" | "$LPATH/troff" $FLAGS | \
+	"$LPATH/dpost" | ps2pdf - > mkout.pdf
+[ $? -ne 0 ] && error 'mktroff: unable to write output' $?
+echo 'mktroff: output written to mkout.pdf' >&2

@@ -1,6 +1,6 @@
 #!/bin/sh
-# xserverrc - xinit server config
+# error - error function
 # Copyright (C) 2022 ArcNyxx
 # see LICENCE file for licensing information
 
-exec /usr/bin/Xorg -nolisten tcp "$@"
+error() { echo "$1"; exit ${2:-1} }

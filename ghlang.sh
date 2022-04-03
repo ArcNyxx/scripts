@@ -3,30 +3,30 @@
 # Copyright (C) 2022 ArcNyxx
 # see LICENCE file for licensing information
 
-if [ -z "$1" ]; then
-	echo 'usage: ghlang [name]' >&2
-	exit 1
-fi
+. /usr/local/etc/error.sh
+
+[ $# -ne 1 ] && error 'usage: ghlang [name]'
 
 TEMP=$(mktemp -dt)
 trap "rm -rf $TEMP" EXIT
 
 PAGE='1'; AUTH="${GHTOKEN:+--oauth2-bearer "$GHTOKEN"}"
 while true; do
-	URL="https://api.github.com/users/$1/repos?per_page=100&page=${PAGE}"
-	REPOS="$(curl -s "$URL" $AUTH | grep '^    "name":' | cut '-d"' -f4) $REPOS"
+	URL="https://api.github.com/users/$1/repos?per_page=100&page=$PAGE"
+	REPOS="$(curl -s "$URL" $AUTH | grep '^    "name":' |
+		cut '-d"' -f4) $REPOS"
 	[ "$(echo "$REPOS" | wc -w)" != "$((PAGE * 100))" ] && break
 	PAGE=$((PAGE + 1))
 done
 
 echo "$REPOS" | while read -r REPO; do
-	URL="https://api.github.com/repos/${NAME}/${REPO}/languages"
+	URL="https://api.github.com/repos/$1/$REPO/languages"
 	curl -s "$URL" | grep '^  ' | tr -d ':,' | while read -r LANG; do
-		DATA=$(echo "$LANG" | cut '-d ' -f2)
-		LANG=$(echo "$LANG" | cut '-d ' -f1 | cut '-d"' -f2)
+		DATA="$(echo "$LANG" | cut '-d ' -f2)"
+		LANG="$(echo "$LANG" | cut '-d ' -f1 | cut '-d"' -f2)"
 
-		VALUE=$(cat "$TEMP/$LANG" 2>/dev/null)
-		echo $((VALUE + "$DATA")) > "$TEMP/$LANG"
+		VALUE="$(cat "$TEMP/$LANG" 2>/dev/null)"
+		echo $((VALUE + DATA)) >"$TEMP/$LANG"
 	done
 done
 
