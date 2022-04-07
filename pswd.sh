@@ -7,9 +7,10 @@
 
 # make "$PSWD" file if not exists
 [ -z "$PSWD" ] && error 'pswd: $PSWD variable unset'
-[ ! -e "$PSWD" ] && mkdir -p "${PSWD%/*}" && \
-	touch "$PSWD" 2>/dev/null && age -p "$PSWD"
-[ $? -ne 0 ] && error 'pswd: unable to make $PSWD file'
+if [ ! -e "$PSWD" ]; then
+	mkdir -p "${PSWD%/*}" && touch "$PSWD" 2>/dev/null && age -p "$PSWD"
+	[ $? -ne 0 ] && error 'pswd: unable to make $PSWD file'
+fi
 
 # read "$PSWD" file, output and exit if no arguments
 READ="$(age -d "$PSWD" 2>/dev/null)"
