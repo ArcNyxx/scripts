@@ -9,12 +9,11 @@
 
 case "$1" in
 	stat)
-		ssh -q "$REMOTE" 'lpstat' 2>/dev/null | awk '{
-			printf "pstat: request id " $1 " sent at ";
-			for (i = 4; i <= NF; i++)
-				str = str $i " ";
-			system("date --date=\"" str "\" \"+%T on %A, %B %d\"")
-		}'
+		ssh -q "$REMOTE" 'lpstat' 2>/dev/null | while read -r LINE; do
+			echo -n "pstat: request id ${LINE%%\ *} sent at "
+			date "--date=$(echo "$LINE" | tr -s ' ' | \
+				cut '-d ' -f4-)" "+%T on %A, %B %d"
+		done
 		;;
 	cancel)
 		REQ="$2"
@@ -25,16 +24,19 @@ case "$1" in
 		echo 'print: requests cancelled' >&2
 		;;
 	*.pdf)
-		ssh -q "$REMOTE" "mkdir -p $PRDEST" 2>/dev/null
-		[ $? -ne 0 ] && error "print: unable to mkdir $PRDEST" $?
+		ssh -q "$REMOTE" "mkdir -p $DEST" 2>/dev/null
+		[ $? -ne 0 ] && error "print: unable to mkdir $DEST" $?
 
-		scp "$FILE" "$REMOTE:$PRDEST" >/dev/null
+		scp "$1" "$REMOTE:$DEST" >/dev/null
 		[ $? -ne 0 ] && error 'print: unable to transfer document' $?
-		echo "print: document transferred to $PRDEST/$1" >&2
+		echo "print: document transferred to $DEST/$1" >&2
 
-		REQ="$(ssh -q "$REMOTE" "lp -o media=Letter $PRDEST/$(basename
-			"$FILE")" 2>/dev/null | cut '-d ' -f4)"
+		REQ="$(ssh -q "$REMOTE" "lp -o media=Letter $DEST/$(basename \
+			"$1")" 2>/dev/null | cut '-d ' -f4)"
 		[ $? -ne 0 ] && error 'print: unable to print document' $?
 		echo "print: printing with request id $REQ" >&2
+		;;
+	*)
+		error 'usage: print [cmd] [opt...]'
 		;;
 esac
