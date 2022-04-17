@@ -1,6 +1,5 @@
 #!/bin/sh
 # sx - xorg client-server frontend
-# Copyright (C) 2017 Earnestly
 # Copyright (C) 2022 ArcNyxx
 # see LICENCE file for licensing information
 
@@ -10,27 +9,24 @@ clean() {
 		EXIT=$?
 	fi
 
-	stty "$STTY" || stty sane # if saved fails, reset to default
+	stty "$SAVE" || stty sane # if save fails, reset to default
 	xauth remove ":$TTY"
 	exit "${EXIT:-0}"
 }
 
-TTY="$(tty)"; TTY="${TTY#/dev/tty}"
-STTY="$(stty -g)"
+TTY="$(tty)"
+SAVE="$(stty -g)"
+if [ "${TTY#/dev/tty}" = "$TTY" ]; then
+	echo "sx: unable to run from $TTY" >&2; exit 1
+else
+	TTY="${TTY#/dev/tty}"
+fi
 
-export XAUTHORITY="${XAUTHORITY:-$HOME/.Xauthority}"
-xauth add ":$TTY" MIT-MAGIC-COOKIE-1 \
-	"$(od -An -N16 -tx /dev/urandom | tr -d ' ')"
+xauth add ":$TTY" . "$(od -An -N16 -x /dev/urandom | tr -d ' ')"
+trap clean EXIT HUP INT TERM QUIT
 
-# clean on exit or interrupt
-trap 'clean' EXIT HUP INT TERM QUIT
-
-# xorg sends sigusr when ready to accept connections
+# ignore SIGUSR1 in subshell, sending to external trap
 trap 'DISPLAY=":$TTY" exec "$XINITRC" $@ & wait $!' USR1
-
-# fork subshell to exec new server process
-# ignore signal to allow handling from outside
-# outside handles either due to xorg sending signal or trap not blocking
-(trap '' USR1 && exec Xorg ":$TTY" -keeptty "vt$TTY" \
-	-noreset -auth "$XAUTHORITY") & PID=$!
-wait "$PID"
+(trap '' USR1 && exec Xorg ":$TTY" "vt$TTY" -keeptty -noreset \
+	-auth "$XAUTHORITY") & PID=$!
+wait "$PID" # clean
