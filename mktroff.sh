@@ -1,13 +1,13 @@
 #!/bin/sh
-# mktroff - compile troff documents to pdf
+# mktroff - compile troff
 # Copyright (C) 2022 ArcNyxx
 # see LICENCE file for licensing information
 
-. /usr/local/etc/error.sh
+if [ $# -eq 0 ]; then
+	echo 'usage: mktroff [flag...] [file...]' >&2; exit 1
+fi
 
-[ $# -eq 0 ] && error 'usage: mktroff [flag...] [file...]'
-
-FLAGS=''; INPUT=''
+unset FLAGS INPUT
 for PARAM in $@; do
 	if [ -z "${PARAM%-*}" ]; then
 		FLAGS="$FLAGS $PARAM"
@@ -16,8 +16,6 @@ for PARAM in $@; do
 	fi
 done
 
-LPATH='/usr/local/ucb'
-"$LPATH/tbl" $INPUT | "$LPATH/eqn" | "$LPATH/troff" $FLAGS | \
-	"$LPATH/dpost" | ps2pdf - > mkout.pdf
-[ $? -ne 0 ] && error 'mktroff: unable to write output' $?
-echo 'mktroff: output written to mkout.pdf' >&2
+PATH="/usr/local/ucb:$PATH"
+tbl $INPUT | eqn | troff $FLAGS | dpost | ps2pdf - >mkout.pdf
+[ $? -eq 0 ] && echo 'mktroff: output written to mkout.pdf' >&2

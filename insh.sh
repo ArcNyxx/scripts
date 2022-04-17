@@ -1,9 +1,9 @@
 #!/bin/sh
-# insh - install shell script
+# insh - install script
 # Copyright (C) 2022 ArcNyxx
 # see LICENCE file for licensing information
 
-if [ -n "$1" ]; then
-	FILE="${1%.*}"
-	cp "$1" "/usr/local/bin/${FILE##*/}"
-fi
+[ -z "$1" ] && exit 1
+
+FILE="${1%.*}"
+cp "$1" "/usr/local/bin/${FILE%%*/}"
