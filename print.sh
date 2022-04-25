@@ -27,7 +27,7 @@ else
 	echo "print: document transferred to $PRDEST/$1" >&2
 
 	REQ="$(ssh -q "$REMOTE" "lp -o media=Letter $PRDEST/${1##*/}" \
-		2>/dev/null)"
+		2>/dev/null | cut '-d ' -f4)"
 	[ $? -ne 0 ] && error 'print: unable to print document' $?
-	echo "print: printing with request id ${REQ##* }" >&2
+	echo "print: printing with request id $REQ" >&2
 fi
