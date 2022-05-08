@@ -14,13 +14,9 @@ clean() {
 	exit "${EXIT:-0}"
 }
 
-TTY="$(tty)"
 SAVE="$(stty -g)"
-if [ "${TTY#/dev/tty}" = "$TTY" ]; then
-	echo "sx: unable to run from $TTY" >&2; exit 1
-else
-	TTY="${TTY#/dev/tty}"
-fi
+TTY="$(tty | cut -dy -f2)"
+[ "${TTY%/*}" != "$TTY" ] && exit 1
 
 xauth add ":$TTY" . "$(od -An -N16 -x /dev/urandom | tr -d ' ')"
 trap clean EXIT HUP INT TERM QUIT
