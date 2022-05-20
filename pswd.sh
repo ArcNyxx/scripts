@@ -15,10 +15,12 @@ fi
 
 case "$1" in
 	add)
-		[ $# -ne 4 ] && error 'usage: pswd add [site] [user] [pass]'
+		[ $# -ne 2 ] && error 'usage: pswd add [site]'
+		echo 'pswd: enter your username and password' >&2
+		read -r USER PASS
 		READ="$(age -d "$PSWD" 2>/dev/null)"
 		[ -z "$READ" ] && error 'pswd: unable to read $PSWD file'
-		echo -e "$READ\n$2 $3 $4" | sort -u | column -t | \
+		echo -e "$READ\n$2 $USER $PASS" | sort -u | column -t | \
 			age -e -p -o "$PSWD"
 		;;
 	read)
