@@ -39,6 +39,9 @@ case "$1" in
 		echo "$READ" | grep -v "$GREP" | sort -u | column -t | \
 			age -e -p -o "$PSWD"
 		;;
+	backup)
+		base64 "$PSWD" >"$PSWD.b64"
+		;;
 	*)
 		error 'usage: pswd [cmd] ...'
 esac
